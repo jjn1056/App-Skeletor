@@ -1,5 +1,5 @@
 use Test::Most;
-use App::Skeletor;
+use_ok 'App::Skeletor';
 
 
-done_testing;
+done_testing(1);

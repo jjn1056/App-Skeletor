@@ -1,0 +1,11 @@
+-- add .skeltor file in generated project so that reuse
+   is faster
+
+-- allow a git repository to be the source for project
+   template
+
+-- allow hooks and configuration presets in the template
+   distribution.
+   
+-- allow to install a CPAN project template to a tmp area
+   for setup, if its not already installed.
