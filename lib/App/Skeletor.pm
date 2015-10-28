@@ -9,23 +9,32 @@ use Module::Runtime 'use_module';
 use Path::Tiny;
 use Template::Tiny;
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 sub getopt_spec {
   return (
     'skeletor %o <some-arg>',
-    ['template=s', 'Namespace of the project templates', { required=>1 }],
+    ['template|t=s', 'Namespace of the project templates', { required=>1 }],
     ['as=s', 'Target namespace of the new project', { required=>1 }],
-    ['directory=s', 'Where to build the new project (default: cwd)', {default=>Path::Tiny->cwd}],
-    ['author=s', 'Primary author for the project', { required=>1 }],
-    ['year=i', 'Copyright year (default: current year)', {default=>(localtime)[5]+1900}]
+    ['directory|d=s', 'Where to build the new project (default: cwd)', {default=>Path::Tiny->cwd}],
+    ['author|a=s', 'Primary author for the project', { required=>1 }],
+    ['year|y=i', 'Copyright year (default: current year)', {default=>(localtime)[5]+1900}],
+    [ 'overwrite|o', 'overwrite existing files' ],
   );
 }
-
 sub path_to_share {
-  use_module(my $project_template = shift);
+  my $project_template = shift;
+  my $tmp;
+  unless(eval { use_module $project_template }) {
+    # cant use, assume not loaded.
+    $tmp = Path::Tiny->tempdir;
+    `curl -L https://cpanmin.us | perl - --verbose --metacpan -l $tmp $project_template`;
+    eval "use lib '$tmp/lib/perl5'";    
+    use_module $project_template;
+  }
   $project_template=~s/::/-/g;
-  return path(dist_dir($project_template), 'skel');
+  my $ret = path(dist_dir($project_template), 'skel');
+  return ($ret, $tmp);
 }
 
 sub template_as_name {
@@ -37,7 +46,7 @@ sub template_as_name {
 sub run {
   local @ARGV = @_;
   my ($opt, $usage) = describe_options(getopt_spec);
-  my $path_to_share = path_to_share($opt->template);
+  my ($path_to_share, $tmp) = path_to_share($opt->template);
 
   my %template_var_names =  (
     (map { $_->{name} => $opt->${\$_->{name}} } @{$usage->{options}}),
@@ -56,9 +65,6 @@ sub run {
     },
   );
 
-  my $keys = join ',', map { "\$$_" }  keys %template_var_names;
-  my $ref = join ' ',  keys %template_var_names;
-  my $to_eval = "my ($keys) = \@template_var_names{qw/$ref/}";
   my $tt = Template::Tiny->new(TRIM => 1);
 
   $path_to_share->visit(sub {
@@ -66,10 +72,20 @@ sub run {
     return if $path=~m/\.DS_Store/g;
     my $expanded_path = $path;
     my $target_path = path($opt->directory, $expanded_path->relative($path_to_share));
-    $target_path = path(eval "$to_eval; qq[$target_path]" 
-      || die "Can't expand $target_path");
+    my (@vars) = ($target_path=~m/__(?:(?![__]_).)+__/g);
+    foreach my $var(@vars) {
+      my ($key) = ($var=~m/^__(\w+)__$/);
+      my $subst = $template_var_names{$key} || die "$key not a defined variable";
+      $target_path=~s/${var}/$subst/g;
+    }
 
+    $target_path = path($target_path);
 
+    if(-e $target_path && !$opt->overwrite) {
+      print "$target_path exists, skipping (set --overwrite to rebuild)\n";
+      return;
+    }
+    
     if($expanded_path->is_file) {
       $expanded_path->parent->mkpath;
       if("$path"=~/\.ttt$/) {
@@ -88,8 +104,6 @@ sub run {
     } else {
       print "Don't know want $path is!";
     }
-
-
   }, {recurse=>1});
 }
 
@@ -171,6 +185,16 @@ is more simple / less features).
 The following configuration options are available, which are used as template
 variables and directory/file path expansions.
 
+=head2 template
+
+This is the namespace of the distribution containing the templates for generating
+a new project.  For example, L<Skeletor::Template::Example>.
+
+If the distribution is not already installed into your @INC, we will download it
+and install it into a temporary directory.  After generating files the temporary
+install is deleted.  Obviously you need a working internet connection for this
+feature to work.
+
 =head2 namespace
 
 =head2 as
@@ -247,11 +271,11 @@ ending in '/' indicates a directory.
               MyTemplate.pm
       share/
         skel/
-          $name/
+          __name__/
             dist.ini.ttt
             lib/
-              ${project_fullpath}.pm.ttt
-              $project_fullpath/
+              __project_fullpath__.pm.ttt
+              __project_fullpath__/
                 Web.pm.ttt
             t/
               basic.t.ttt
@@ -272,14 +296,16 @@ the project template share/skel/ to the target directory, performing any
 template expansions as needed.  Template variable are defined above.  We
 expand directories and files by matching a template variable in the path
 using a similar approach as we do variable interpolation in a string.  for
-example a directory called "$name" would expand to the project name variable
+example a directory called "__name__" would expand to the project name variable
 (which is derived from the L</as> commandline option.
 
 In the case where you need to combine a template variable with other characters
-you may enclose it with parenthesis, as in the example "${project_fullpath}.pm.ttt".
+you may do so as in the example "__project_fullpath__.pm.ttt".
 
 Any file ending in '.ttt' is considered a template and is processed via L<Template::Tiny>
-expanding variables as described in the previous section.
+expanding variables as described in the previous section.  We trucate the '.ttt' as
+part of the conversion process so a file template "myapp.pm.ttt" becomes 'myapp.pm'
+in the build directory.
 
 =head1 AUTHOR
  

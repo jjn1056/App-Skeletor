@@ -2,3 +2,10 @@ The following logs changes for the CPAN distribution App-Skeletor
 
 0.001   October 26, 2015
         - First usable version (I think...)
+
+0.002   October 28, 2015
+        - change directory and file expansion variables from $var to
+          __var__ for better cross platform compatibility
+        - control overwrite of existing files
+        - auto install a template on request
+
