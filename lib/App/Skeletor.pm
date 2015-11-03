@@ -115,7 +115,7 @@ App::Skeletor - Bootstrap a new project from a shared template
 
 =head1 SYNOPSIS
 
-    skeletor --template Skeltor::Template::Example \
+    skeletor --template Skeletor::Template::Example \
       --as Local::MyApp \
       --directory ~/new_projects \
       --author 'John Napiorkowski <jjnapiork@cpan.org>' \
@@ -130,11 +130,11 @@ application building.  Additionally, during general development certain types
 of repeated tasks may occur which would benefit from automation, such as adding
 new controllers to L<Catalyst> or new tables in L<DBIx::Class>.  For these types
 of activities you may find having a code generator speeds up some of the grunt
-work and promotes uniformity of design.  L<App::Skeltor> is such a code generator.
+work and promotes uniformity of design.  L<App::Skeletor> is such a code generator.
 
-The core design is simple.  You install L<App::Skeltor> and any of the code
+The core design is simple.  You install L<App::Skeletor> and any of the code
 patterns on CPAN that you wish to derive projects from (typically using the
-L<Skeltor::Template::*> namespace, but you can use any namespace, and project
+L<Skeletor::Template::*> namespace, but you can use any namespace, and project
 patterns can be attached to any arbitirary CPAN module).  You then can use the
 'skeletor' commandline application to generate code into a target directory,
 using expansion variables to customize how the directories and files are created.
@@ -144,7 +144,7 @@ based off the L<Skeletor::Template::Example> project, you'd install that distrib
 (via L<cpanminus> or whichever tool you prefer) and then type something like the
 following:
 
-    skeletor --template Skeltor::Template::Example \
+    skeletor --template Skeletor::Template::Example \
       --as Local::MyApp \
       --directory ~/new_projects \
       --author 'John Napiorkowski <jjnapiork@cpan.org>' \
@@ -172,7 +172,7 @@ agnostic (doesn't require L<Dist::Zilla>).  I think its also a lot more simple t
 a minting profile.
 
 L<App::Skeletor> is probably more comparable with tools like L<Module::Starter> which
-at this time are more mature tools.  If L<App::Skeltor> has tool many rough edges you
+at this time are more mature tools.  If L<App::Skeletor> has tool many rough edges you
 may wish to take a look.  At this point the main comparison is that I think the way
 a project skelton is created and organized is significantly easier to understand (famous
 last words I know :) ).  The a later section covers this topic, and you may wish to review
@@ -262,7 +262,7 @@ Here is a very simple template with explanation to get you started.  The example
 namespace given is mythical and does not exist on CPAN.  In this example a path
 ending in '/' indicates a directory.
 
-    Local-Skeltor-Template-MyTemplate/
+    Local-Skeletor-Template-MyTemplate/
       Makefile.PL
       lib/
         Local/
