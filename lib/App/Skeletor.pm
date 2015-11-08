@@ -173,9 +173,33 @@ following:
 This would create a new project which consists of directories and files that have been
 generated and customized based on the commandline options given.
 
+Alternatively you may use the URL hosted version of L<App::Skeletor> which will always
+track the most current release.  This allows you to use the tool without installing it
+first, making it useful for bootstrapping new development environments:
+
+    curl -L bit.ly/app-skeletor | perl - \
+      --template Skeletor::Template::Example \
+      --as Local::MyApp \
+      --author 'test author'
+
+This assumes a working internet connection as well as some version of Perl installed
+and the C<curl> commandline tool installed.  In general this should be true for most
+Unix and Unixlike systems.  However running an application directly off the internet
+this way may violate your companies security policies (and some so common sense) so
+use this option with caution.
+
 B<NOTE> C<directory> and C<year> are optional, and default to the current working directory
 and current year respectively.  Some project templates may define additional configuration
 options, you should review the documentation.
+
+B<NOTE> Template distributions may define custom options for the commandline tool.  You
+should review its documentation to make sure you are using it properly.
+
+B<NOTE> If you specify a template that is not currently installed, L<App::Skeletor> will
+download it and install it to a temporary area for one time use.  When the application
+exits, the temporary install is cleaned up.
+
+=head1 COMPARISON WITH SIMILAR TOOLS
 
 Other similar boilerplate code generators exist on CPAN.  For example L<Catalyst::Devel> has a
 commandline tool for creating a simple L<Catalyst> project.  L<Dancer2>, L<Mojolicious>
@@ -195,10 +219,8 @@ L<App::Skeletor> is probably more comparable with tools like L<Module::Starter> 
 at this time are more mature tools.  If L<App::Skeltor> has tool many rough edges you
 may wish to take a look.  At this point the main comparison is that I think the way
 a project skelton is created and organized is significantly easier to understand (famous
-last words I know :) ).  The a later section covers this topic, and you may wish to review
-L<Module::Starter>, L<Module::Setup> and L<App::Starter> for points of comparison.
-(L<App::Skeletor> is probably most like L<App::Starter> although I think L<App::Skeletor>
-is more simple / less features).
+last words I know :) ).  Also L<App::Skeltor> can be run directly from the URL hosted
+version, if you are not afraid of that!
 
 =head1 ARGUMENTS
 
@@ -266,7 +288,7 @@ Year information for setting project copyright, etc.  Default is current year.
 =head1 BUILDING A TEMPLATE
 
 An L<App::Skeletor> template is just a CPAN module under any namespace you like
-(athough Skeletor::Template:: is not a terrible place to put one to make it
+(athough Skeletor::Template::* is not a terrible place to put one to make it
 easier for people to find) with a share/skel directory which should contain
 asset files (files copied to a new project without alteration), project templates
 (files that are copied to a new project but are first processed thru L<Template::Tiny>
@@ -274,7 +296,7 @@ to customize them) and directories.  Directory names may also contain expansion
 variables in order to customize directory layout.
 
 There is a reasonable complex example on CPAN under the namespace
-L<Skeletor::Template::Example> which you may refer to as a somewhat complexe
+L<Skeletor::Template::Example> which you may refer to as a somewhat complex
 template that includes all the mentioned types of data.  You may find reviewing
 the example to be a faster way to understand how to make your own project templates.
 
