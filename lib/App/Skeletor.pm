@@ -9,17 +9,17 @@ use Module::Runtime 'use_module';
 use Path::Tiny;
 use Template::Tiny;
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 sub getopt_spec {
   return (
-    'skeletor %o <some-arg>',
+    'skeletor %o',
     ['template|t=s', 'Namespace of the project templates', { required=>1 }],
-    ['as=s', 'Target namespace of the new project', { required=>1 }],
+    ['as|p=s', 'Target namespace of the new project', { required=>1 }],
     ['directory|d=s', 'Where to build the new project (default: cwd)', {default=>Path::Tiny->cwd}],
     ['author|a=s', 'Primary author for the project', { required=>1 }],
     ['year|y=i', 'Copyright year (default: current year)', {default=>(localtime)[5]+1900}],
-    [ 'overwrite|o', 'overwrite existing files' ],
+    ['overwrite|o', 'overwrite existing files' ],
   );
 }
 sub path_to_share {
@@ -44,9 +44,18 @@ sub template_as_name {
 }
 
 sub run {
-  local @ARGV = @_;
-  my ($opt, $usage) = describe_options(getopt_spec);
+  my ($class, @args) = @_;
+  local @ARGV = @args;
+
+  my ($desc ,@spec) = getopt_spec;
+  my ($opt, $usage) = describe_options($desc, @spec, {getopt_conf=>['pass_through']});
   my ($path_to_share, $tmp) = path_to_share($opt->template);
+
+  if($opt->template->can('extra_getopt_spec')) {
+    my @new_spec = (@spec, $opt->template->extra_getopt_spec);
+    local @ARGV = @args;
+    ($opt, $usage) = describe_options($desc, @new_spec);
+  }
 
   my %template_var_names =  (
     (map { $_->{name} => $opt->${\$_->{name}} } @{$usage->{options}}),
@@ -115,11 +124,22 @@ App::Skeletor - Bootstrap a new project from a shared template
 
 =head1 SYNOPSIS
 
+From the commandline:
+
     skeletor --template Skeltor::Template::Example \
       --as Local::MyApp \
       --directory ~/new_projects \
       --author 'John Napiorkowski <jjnapiork@cpan.org>' \
       --year 2015
+
+Bootstrap from URL hosted version:
+
+    curl -L bit.ly/app-skeletor | perl - \
+      --template Skeletor::Template::Example \
+      --as Local::MyApp \
+      --author 'test author'
+
+(Assumes you have `curl` installed, as it is on many modern unix-like systems).
 
 =head1 DESCRIPTION
 
@@ -306,6 +326,20 @@ Any file ending in '.ttt' is considered a template and is processed via L<Templa
 expanding variables as described in the previous section.  We trucate the '.ttt' as
 part of the conversion process so a file template "myapp.pm.ttt" becomes 'myapp.pm'
 in the build directory.
+
+=head1 CUSTOMIZING TEMPLATE VARIABLES
+
+When you create you template distribution the bulk of you code will go under 
+C<share/skel>.  However you may use distribution module (the file for example
+in C<lib/Skeletor/Template/MySpecialTemplate.pm>) to customize aspects of the 
+build process.  The following methods may be defined in your distribution module.
+
+=head2 extra_getopt_spec
+
+This method is called in class context and should return an array of options as
+L<Getopt::Long::Descriptive> describes for C<@opt_spec> (the second of the three
+arguments one passes to 'describe_options'.  You may use this to add custom 
+template and file expansion variables to your template.
 
 =head1 AUTHOR
  
