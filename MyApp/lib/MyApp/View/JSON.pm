@@ -1,0 +1,12 @@
+use strict;
+use warnings;
+
+package MyApp::View::JSON;
+
+use base 'Catalyst::View::JSON';
+
+__PACKAGE__->config(
+  allow_callback  => 1,
+  expose_stash => 'body_data',
+  json_encoder_args => +{convert_blessed=>1, allow_nonref=>1}
+);

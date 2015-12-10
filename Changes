@@ -1,5 +1,10 @@
 The following logs changes for the CPAN distribution App-Skeletor
 
+0.004   December 10, 2015
+        - Load global preferences from ~/.skeletor.json
+        - Less verbose when building templates
+        - preserve permissions defined in templates as best we can
+
 0.003   November 6, 2015
         - Documentation around url hosted version
         - New Feature: Your template class may define custom template

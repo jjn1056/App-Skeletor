@@ -23,12 +23,14 @@ my %WriteMakefileArgs = (
       "File::Share" => '0.25',
       "Module::Runtime" => '0.014',
       "Path::Tiny" => '0.072',
-      "Template::Tiny" => '1.12',  
+      "Template::Tiny" => '1.12',
+      "File::HomeDir" => '1.00',
+      "JSON::PP" => '0',
   },
   "TEST_REQUIRES" => {
     "Test::Most" => 0
   },
-  "VERSION" => "0.003",
+  "VERSION" => "0.004",
   "test" => {
     "TESTS" => "t/*.t"
   }

@@ -8,8 +8,10 @@ use File::Share 'dist_dir';
 use Module::Runtime 'use_module';
 use Path::Tiny;
 use Template::Tiny;
+use File::HomeDir;
+use JSON::PP;
 
-our $VERSION = '0.003';
+our $VERSION = '0.004';
 
 sub getopt_spec {
   return (
@@ -28,9 +30,10 @@ sub path_to_share {
   unless(eval { use_module $project_template }) {
     # cant use, assume not loaded.
     $tmp = Path::Tiny->tempdir;
-    `curl -L https://cpanmin.us | perl - --verbose --metacpan -l $tmp $project_template`;
+    print "Template $project_template is not installed, creating temporary install into $tmp";
+    `curl -L https://cpanmin.us | perl - --metacpan -l $tmp $project_template`;
     eval "use lib '$tmp/lib/perl5'";    
-    use_module $project_template;
+    use_module $project_template || die "Can't install and use $project_template";
   }
   $project_template=~s/::/-/g;
   my $ret = path(dist_dir($project_template), 'skel');
@@ -45,12 +48,21 @@ sub template_as_name {
 
 sub run {
   my ($class, @args) = @_;
+
+  ## Look in homedir and grab any options
+  if(-e(my $saved_options_path = path(File::HomeDir->my_home, '.skeletor.json'))) {
+    print "Found user options at: $saved_options_path\n";
+    my $json_opts = decode_json($saved_options_path->slurp);
+    @args = (@args, %$json_opts);
+  }
+
   local @ARGV = @args;
 
   my ($desc ,@spec) = getopt_spec;
   my ($opt, $usage) = describe_options($desc, @spec, {getopt_conf=>['pass_through']});
   my ($path_to_share, $tmp) = path_to_share($opt->template);
 
+  ## Templates can add or override options
   if($opt->template->can('extra_getopt_spec')) {
     my @new_spec = (@spec, $opt->template->extra_getopt_spec);
     local @ARGV = @args;
@@ -104,6 +116,8 @@ sub run {
         path($new_target_path)->touchpath;
         my $fh = path($new_target_path)->openw;
         print $fh $out;
+        close($fh);
+        path($new_target_path)->chmod($expanded_path->stat->mode);
 
       } else {
         $expanded_path->copy($target_path);
@@ -198,6 +212,22 @@ should review its documentation to make sure you are using it properly.
 B<NOTE> If you specify a template that is not currently installed, L<App::Skeletor> will
 download it and install it to a temporary area for one time use.  When the application
 exits, the temporary install is cleaned up.
+
+=head1 PERMISSIONS
+
+As best as we can we try to replicat user/group/world read/write permissions defined
+in the template files to the project generated files.
+
+=head1 GLOBAL CONFIGURATION
+
+You may store repeated or common configuration options in ~/skeletor.json, for example:
+
+    cat ~/.skeletor.json 
+    {
+      "--author": "John Nap"
+    }
+
+Then when you build a project the '--author' option will be preloaded.
 
 =head1 COMPARISON WITH SIMILAR TOOLS
 
