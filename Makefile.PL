@@ -4,7 +4,14 @@ use warnings;
 use 5.008001;
  
 use ExtUtils::MakeMaker;
- 
+
+
+my $meta_merge = +{
+  resources => {
+    repository  => 'https://github.com/jjn1056/App-Skeletor.git',
+  },
+};
+
 my %WriteMakefileArgs = (
   "ABSTRACT" => "Bootstrap a new project from a shared template",
   "AUTHOR" => "John Napiorkowski",
@@ -30,10 +37,11 @@ my %WriteMakefileArgs = (
   "TEST_REQUIRES" => {
     "Test::Most" => 0
   },
-  "VERSION" => "0.004",
+  "VERSION" => "0.005",
   "test" => {
     "TESTS" => "t/*.t"
-  }
+  },
+  ($ExtUtils::MakeMaker::VERSION >= 6.50 ? (META_MERGE => $meta_merge) : ()),
 );
  
 my %FallbackPrereqs = (

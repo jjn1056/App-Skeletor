@@ -11,7 +11,7 @@ use Template::Tiny;
 use File::HomeDir;
 use JSON::PP;
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 sub getopt_spec {
   return (

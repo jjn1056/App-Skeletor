@@ -1,5 +1,8 @@
 The following logs changes for the CPAN distribution App-Skeletor
 
+0.005   December 13, 2015
+        - Changed distribution metadata
+
 0.004   December 10, 2015
         - Load global preferences from ~/.skeletor.json
         - Less verbose when building templates
